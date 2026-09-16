@@ -10,27 +10,10 @@ import type {
   GetCarsVariables,
 } from "../types";
 
-export interface UseCarsOptions {
-  variables?: GetCarsVariables;
-}
-
-export interface UseCarsReturn {
-  cars: Car[];
-  loading: boolean;
-  error: Error | undefined;
-  refetch: (variables?: Partial<GetCarsVariables>) => Promise<unknown>;
-  createCar: (input: CreateCarInput) => Promise<Car>;
-  isCreating: boolean;
-  createError: Error | undefined;
-}
-
-export const useCars = (options?: UseCarsOptions): UseCarsReturn => {
+export const useCars = (variables?: GetCarsVariables) => {
   const { data, loading, error, refetch } = useQuery<GetCarsData, GetCarsVariables>(
     GET_CARS,
-    {
-      variables: options?.variables,
-      notifyOnNetworkStatusChange: true,
-    }
+    { variables, notifyOnNetworkStatusChange: true }
   );
 
   const [createCarMutation, { loading: isCreating, error: createError }] = useMutation<
@@ -38,43 +21,28 @@ export const useCars = (options?: UseCarsOptions): UseCarsReturn => {
     CreateCarVariables
   >(CREATE_CAR, {
     refetchQueries: [{ query: GET_CARS }],
-    update(cache, { data: mutationData }) {
-      if (!mutationData?.createCar) return;
-      const newCar = mutationData.createCar;
+    update(cache, { data: res }) {
+      if (!res?.createCar) return;
+      const newCar = res.createCar;
 
-      
       try {
-        const existingData = cache.readQuery<GetCarsData>({
-          query: GET_CARS,
-        });
-
-        if (existingData?.cars) {
-          const alreadyExists = existingData.cars.some((c) => c.id === newCar.id);
-          if (!alreadyExists) {
-            cache.writeQuery<GetCarsData>({
-              query: GET_CARS,
-              data: {
-                cars: [...existingData.cars, newCar],
-              },
-            });
-          }
+        const cached = cache.readQuery<GetCarsData>({ query: GET_CARS });
+        if (cached?.cars && !cached.cars.some((c) => c.id === newCar.id)) {
+          cache.writeQuery<GetCarsData>({
+            query: GET_CARS,
+            data: { cars: [...cached.cars, newCar] },
+          });
         }
-      } catch (_err) {
-       void _err;
+      } catch (_e) {
+        void _e;
       }
     },
   });
 
   const createCar = async (input: CreateCarInput): Promise<Car> => {
-    const result = await createCarMutation({
-      variables: { input },
-    });
-
-    if (!result.data?.createCar) {
-      throw new Error("Failed to create vehicle: No data returned from mutation.");
-    }
-
-    return result.data.createCar;
+    const res = await createCarMutation({ variables: { input } });
+    if (!res.data?.createCar) throw new Error("Failed to create car");
+    return res.data.createCar;
   };
 
   return {

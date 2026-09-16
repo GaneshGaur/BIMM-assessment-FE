@@ -1,6 +1,6 @@
 import { seedCars, type SeedCar } from "./seed";
 
-const STORAGE_KEY = "car_inventory_db";
+const STORAGE_KEY = "local_storage_db";
 
 const loadCars = (): SeedCar[] => {
   try {

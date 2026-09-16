@@ -14,12 +14,12 @@ import {
   Snackbar,
   Stack,
   Toolbar,
-  Tooltip,
   Typography,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import FilterAltOffIcon from "@mui/icons-material/FilterAltOff";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
+
 import { useCars } from "../hooks/useCars";
 import { useCarFilters } from "../hooks/useCarFilters";
 import { CarList } from "../components/CarList";
@@ -30,7 +30,6 @@ import type { CreateCarInput } from "../types";
 
 export const CarsPage = () => {
   const { cars, loading, error, refetch, createCar, isCreating } = useCars();
-
   const {
     search,
     setSearch,
@@ -44,37 +43,27 @@ export const CarsPage = () => {
     resetFilters,
   } = useCarFilters(cars);
 
-  const [isFormOpen, setIsFormOpen] = useState(false);
-  const [snackbar, setSnackbar] = useState<{
-    open: boolean;
-    message: string;
-    severity: "success" | "error" | "info";
-  }>({
-    open: false,
-    message: "",
-    severity: "success",
-  });
+  const [open, setOpen] = useState(false);
+  const [toast, setToast] = useState({ open: false, message: "" });
 
-  const handleCreateCar = async (input: CreateCarInput) => {
+  const handleCreate = async (input: CreateCarInput) => {
     const created = await createCar(input);
-    setSnackbar({
+    setToast({
       open: true,
       message: `Successfully added ${created.year} ${created.make} ${created.model} to inventory!`,
-      severity: "success",
     });
   };
 
   return (
-    <Box sx={{ minHeight: "100vh", backgroundColor: "background.default", pb: 8 }}>
-      {/* Top Application Header */}
-      <AppBar position="static" color="inherit" elevation={1} sx={{ backgroundColor: "#ffffff" }}>
+    <Box sx={{ minHeight: "100vh", bgcolor: "background.default", pb: 8 }}>
+      <AppBar position="static" color="inherit" elevation={1} sx={{ bgcolor: "#ffffff" }}>
         <Container maxWidth="lg">
           <Toolbar disableGutters sx={{ py: 1, gap: 2 }}>
             <Button
               variant="contained"
               color="primary"
               startIcon={<AddIcon />}
-              onClick={() => setIsFormOpen(true)}
+              onClick={() => setOpen(true)}
               data-testid="add-car-button"
             >
               Add Vehicle
@@ -83,9 +72,7 @@ export const CarsPage = () => {
         </Container>
       </AppBar>
 
-      {/* Main Content Container */}
       <Container maxWidth="lg" sx={{ mt: 4 }}>
-        {/* Controls Toolbar */}
         <Paper elevation={0} sx={{ p: 2.5, mb: 4, borderRadius: 2, border: "1px solid", borderColor: "divider" }}>
           <Stack
             direction={{ xs: "column", md: "row" }}
@@ -93,27 +80,15 @@ export const CarsPage = () => {
             alignItems={{ xs: "stretch", md: "center" }}
             justifyContent="space-between"
           >
-            {/* Search Input */}
             <Box sx={{ flex: 1, minWidth: { xs: "100%", md: 260 } }}>
-              <CarSearch
-                value={search}
-                onChange={setSearch}
-                disabled={loading}
-              />
+              <CarSearch value={search} onChange={setSearch} disabled={loading} />
             </Box>
 
-            <Stack
-              direction={{ xs: "column", sm: "row" }}
-              spacing={2}
-              alignItems="center"
-              flexWrap="wrap"
-            >
-              {/* Year Filter */}
+            <Stack direction={{ xs: "column", sm: "row" }} spacing={2} alignItems="center">
               <FormControl size="small" sx={{ minWidth: 140, width: { xs: "100%", sm: "auto" } }} disabled={loading}>
                 <InputLabel id="year-filter-label">Filter Year</InputLabel>
                 <Select
                   labelId="year-filter-label"
-                  id="year-filter-select"
                   value={year === "" ? "" : String(year)}
                   label="Filter Year"
                   onChange={(e) => setYear(e.target.value === "" ? "" : Number(e.target.value))}
@@ -131,35 +106,26 @@ export const CarsPage = () => {
                 </Select>
               </FormControl>
 
-              {/* Sort Dropdown */}
               <Box sx={{ width: { xs: "100%", sm: "auto" } }}>
-                <CarSort
-                  value={sort}
-                  onChange={setSort}
-                  disabled={loading}
-                />
+                <CarSort value={sort} onChange={setSort} disabled={loading} />
               </Box>
 
-              {/* Reset Filters Action */}
               {isFiltered && (
-                <Tooltip title="Reset all search and filter conditions">
-                  <Button
-                    variant="outlined"
-                    color="secondary"
-                    size="small"
-                    startIcon={<FilterAltOffIcon />}
-                    onClick={resetFilters}
-                    data-testid="reset-filters-button"
-                    sx={{ height: 40 }}
-                  >
-                    Reset
-                  </Button>
-                </Tooltip>
+                <Button
+                  variant="outlined"
+                  color="secondary"
+                  size="small"
+                  startIcon={<FilterAltOffIcon />}
+                  onClick={resetFilters}
+                  data-testid="reset-filters-button"
+                  sx={{ height: 40 }}
+                >
+                  Reset
+                </Button>
               )}
             </Stack>
           </Stack>
 
-          {/* Result Count and Active Filters Summary */}
           {!loading && !error && (
             <Box sx={{ mt: 2, pt: 2, borderTop: "1px solid", borderColor: "grey.100", display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 1 }}>
               <Typography variant="body2" color="text.secondary" data-testid="inventory-count">
@@ -168,27 +134,14 @@ export const CarsPage = () => {
 
               {isFiltered && (
                 <Stack direction="row" spacing={1} alignItems="center">
-                  {search && (
-                    <Chip
-                      size="small"
-                      label={`Model: "${search}"`}
-                      onDelete={() => setSearch("")}
-                    />
-                  )}
-                  {year !== "" && (
-                    <Chip
-                      size="small"
-                      label={`Year: ${year}`}
-                      onDelete={() => setYear("")}
-                    />
-                  )}
+                  {search && <Chip size="small" label={`Model: "${search}"`} onDelete={() => setSearch("")} />}
+                  {year !== "" && <Chip size="small" label={`Year: ${year}`} onDelete={() => setYear("")} />}
                 </Stack>
               )}
             </Box>
           )}
         </Paper>
 
-        {/* Vehicle List */}
         <CarList
           cars={filteredCars}
           loading={loading}
@@ -199,29 +152,27 @@ export const CarsPage = () => {
         />
       </Container>
 
-      {/* Create Car Form Dialog */}
       <CreateCarForm
-        open={isFormOpen}
-        onClose={() => setIsFormOpen(false)}
-        onSubmit={handleCreateCar}
+        open={open}
+        onClose={() => setOpen(false)}
+        onSubmit={handleCreate}
         isSubmitting={isCreating}
       />
 
-      {/* Notification Snackbar */}
       <Snackbar
-        open={snackbar.open}
-        autoHideDuration={5000}
-        onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
+        open={toast.open}
+        autoHideDuration={4000}
+        onClose={() => setToast({ ...toast, open: false })}
         anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
       >
         <Alert
-          onClose={() => setSnackbar((prev) => ({ ...prev, open: false }))}
-          severity={snackbar.severity}
+          onClose={() => setToast({ ...toast, open: false })}
+          severity="success"
           variant="filled"
           sx={{ width: "100%" }}
           data-testid="car-snackbar-alert"
         >
-          {snackbar.message}
+          {toast.message}
         </Alert>
       </Snackbar>
     </Box>

@@ -1,20 +1,12 @@
-import {
-  Card,
-  CardContent,
-  Chip,
-  Stack,
-  Typography,
-  Box,
-} from "@mui/material";
-
+import { Card, CardContent, Chip, Stack, Typography, Box } from "@mui/material";
 import CalendarTodayIcon from "@mui/icons-material/CalendarToday";
 import type { Car } from "../types";
 
-export interface CarCardProps {
+interface Props {
   car: Car;
 }
 
-export const CarCard = ({ car }: CarCardProps) => {
+export const CarCard = ({ car }: Props) => {
   const title = `${car.make} ${car.model}`;
 
   return (
@@ -25,22 +17,14 @@ export const CarCard = ({ car }: CarCardProps) => {
         height: "100%",
         display: "flex",
         flexDirection: "column",
-        transition: "transform 0.2s ease, box-shadow 0.2s ease",
+        transition: "transform 0.2s, box-shadow 0.2s",
         "&:hover": {
           transform: "translateY(-4px)",
-          boxShadow: 4,
+          boxShadow: 3,
         },
       }}
     >
-      <Box
-        sx={{
-          position: "relative",
-          width: "100%",
-          paddingTop: "56.25%", // 16:9 Aspect Ratio
-          overflow: "hidden",
-          backgroundColor: "grey.100",
-        }}
-      >
+      <Box sx={{ position: "relative", width: "100%", paddingTop: "56.25%", bgcolor: "grey.100" }}>
         <Box
           component="picture"
           sx={{
@@ -50,27 +34,11 @@ export const CarCard = ({ car }: CarCardProps) => {
             width: "100%",
             height: "100%",
             display: "block",
-            "& img": {
-              width: "100%",
-              height: "100%",
-              objectFit: "cover",
-              display: "block",
-            },
+            "& img": { width: "100%", height: "100%", objectFit: "cover" },
           }}
         >
-          {/* Desktop breakpoint: >= 1024px */}
-          <source
-            media="(min-width: 1024px)"
-            srcSet={car.desktop}
-            data-testid="car-image-desktop"
-          />
-          {/* Tablet breakpoint: 640px - 1023px */}
-          <source
-            media="(min-width: 640px)"
-            srcSet={car.tablet}
-            data-testid="car-image-tablet"
-          />
-          {/* Mobile fallback: <= 639px */}
+          <source media="(min-width: 1024px)" srcSet={car.desktop} data-testid="car-image-desktop" />
+          <source media="(min-width: 640px)" srcSet={car.tablet} data-testid="car-image-tablet" />
           <img
             src={car.mobile}
             alt={`${title} (${car.year}) in ${car.color}`}
@@ -81,21 +49,17 @@ export const CarCard = ({ car }: CarCardProps) => {
       </Box>
 
       <CardContent sx={{ flexGrow: 1, display: "flex", flexDirection: "column", gap: 1.5 }}>
-        <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={1}>
-          <Typography variant="h6" component="h3" fontWeight={700} noWrap>
+        <Stack direction="row" alignItems="center" justifyContent="space-between">
+          <Typography variant="h6" fontWeight={700} noWrap>
             {title}
           </Typography>
           <Chip
             size="small"
             color="primary"
-            variant="filled"
             icon={<CalendarTodayIcon sx={{ fontSize: "0.85rem !important" }} />}
             label={car.year}
-            sx={{ fontWeight: 600 }}
           />
-        </Stack>
-
-        
+        </Stack>        
       </CardContent>
     </Card>
   );
